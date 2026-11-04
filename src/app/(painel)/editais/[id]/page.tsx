@@ -9,6 +9,7 @@ import { IconeAlerta, IconeExterno } from "@/components/Icones";
 import { TextoFaltam } from "@/components/SeloPrazo";
 import StatusDetalhe from "@/components/StatusDetalhe";
 import { lerAcompanhamento, lerOportunidades } from "@/lib/armazenamento";
+import { localizarNavegador } from "@/lib/navegadorPdf";
 import { dataBr, iniciais, proximoPasso, textoValor } from "@/lib/radar";
 
 const caixa = "rounded-2xl border border-linha bg-superficie p-6";
@@ -69,7 +70,7 @@ export default async function PaginaEdital({ params }: { params: Promise<{ id: s
                 <IconeExterno className="size-4" />
                 Abrir na fonte
               </a>
-              <BotaoOnePage id={o.id} />
+              <BotaoOnePage id={o.id} pdfNoServidor={localizarNavegador() !== null} />
             </div>
           </div>
         </section>

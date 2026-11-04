@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "oportunidadeId": "pagina-719e95109c40696f-9574d9c3b4a0d419",
+    "motivo": "Esse endereço é um portal dedicado a publicação de editais pelo Itaú Social, seria mais adequado captar os editais diretamente. Também não há editais abertos no portal",
+    "em": "2026-11-04T13:19:46.992Z",
+    "titulo": "Itaú Social — Editais",
+    "financiador": "Itaú Social",
+    "fonte": "Itaú Social — Editais",
+    "link": "https://www.itausocial.org.br/editais/",
+    "tema": "Educação básica",
+    "local": "",
+    "prazo": null,
+    "valorPorProjeto": null,
+    "valorTotal": null,
+    "nota": 10,
+    "motivoTriagem": "triagem por palavras-chave (sem IA)",
+    "objetivo": ""
+  }
+]

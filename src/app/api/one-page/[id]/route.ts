@@ -1,18 +1,11 @@
 // Gera o PDF do one page imprimindo /one-page/[id] com o Edge (ou Chrome) da máquina, em modo headless.
 // Não usa pacote extra; o caminho do navegador pode ser forçado com NAVEGADOR_PDF no .env.local.
 import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { lerOportunidades } from "@/lib/armazenamento";
-
-const CANDIDATOS = [
-  process.env.NAVEGADOR_PDF,
-  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-  "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-].filter((c): c is string => Boolean(c));
+import { localizarNavegador } from "@/lib/navegadorPdf";
 
 function rodar(exe: string, args: string[]) {
   return new Promise<void>((ok, falha) => {
@@ -31,11 +24,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const o = (await lerOportunidades()).find((x) => x.id === decodeURIComponent(id));
   if (!o) return Response.json({ erro: "Oportunidade não encontrada" }, { status: 404 });
 
-  const navegador = CANDIDATOS.find((c) => existsSync(c));
+  const navegador = localizarNavegador();
   if (!navegador) {
     return Response.json(
-      { erro: "Edge/Chrome não encontrado. Use 'Imprimir' na prévia ou defina NAVEGADOR_PDF no .env.local." },
-      { status: 500 },
+      { erro: "PDF no servidor indisponível aqui. Use 'Imprimir / salvar PDF' na prévia do one page." },
+      { status: 501 },
     );
   }
 
