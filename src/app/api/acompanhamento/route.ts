@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { COOKIE_SESSAO, tokenValido } from "@/lib/sessao";
 import {
   lerAcompanhamento,
   lerOportunidades,
@@ -7,14 +9,22 @@ import {
 } from "@/lib/armazenamento";
 import { STATUS, type MapaAcompanhamento, type Status } from "@/types/oportunidade";
 
+/** Segunda checagem além do proxy: esta rota grava dados. */
+async function semSessao() {
+  if (tokenValido((await cookies()).get(COOKIE_SESSAO)?.value)) return null;
+  return NextResponse.json({ erro: "Sessão expirada. Recarregue a página e entre com a senha." }, { status: 401 });
+}
+
 export async function GET() {
-  return NextResponse.json(await lerAcompanhamento());
+  return (await semSessao()) ?? NextResponse.json(await lerAcompanhamento());
 }
 
 type CorpoPatch = { id: string; status: Status; motivoDescarte?: string };
 
 /** Muda o status de uma oportunidade. Descartar exige motivo, que também vai para o histórico. */
 export async function PATCH(req: Request) {
+  const negado = await semSessao();
+  if (negado) return negado;
   let corpo: CorpoPatch;
   try {
     corpo = await req.json();

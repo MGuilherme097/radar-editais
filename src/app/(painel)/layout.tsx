@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import MenuLateral from "@/components/MenuLateral";
+import { senhaConfigurada } from "@/lib/sessao";
 
 /** Casca do painel: barra de topo + menu lateral. */
 export default function LayoutPainel({ children }: { children: ReactNode }) {
@@ -14,7 +15,16 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
             </span>
             <span className="text-sm font-semibold text-tinta max-sm:hidden">Radar de Editais</span>
           </Link>
-          <span className="text-xs font-bold uppercase tracking-widest text-magenta">Instituto Ânima</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-bold uppercase tracking-widest text-magenta">Instituto Ânima</span>
+            {senhaConfigurada() && (
+              <form method="post" action="/api/sair">
+                <button type="submit" className="text-xs font-semibold text-suave hover:text-azul">
+                  Sair
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </header>
       <div className="flex flex-1 max-md:flex-col">
