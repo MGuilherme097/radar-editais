@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Radar de Editais — Instituto Ânima
 
-## Getting Started
+Painel interno para prospectar editais, chamadas públicas e oportunidades de investimento social.
+Ele mostra a grade de oportunidades, a página de cada edital, o acompanhamento por status, o histórico de descartes com motivo e o one page em PDF.
 
-First, run the development server:
+## Rodar no computador
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variáveis de ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ficam no `.env.local` (fora do Git) e em Vercel › Settings › Environment Variables.
 
-## Learn More
+| Variável | Para quê | Sem ela |
+|---|---|---|
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Upstash Redis: status, descartes, oportunidades | usa os arquivos `data/*.json` |
+| `SENHA_EQUIPE` | senha única de acesso | app aberto, sem login |
+| `PROSAS_CLIENT_ID` | coleta diária no Prosas | a coleta falha e avisa no app |
+| `CRON_SECRET` | autoriza o cron da Vercel a chamar `/api/coleta` | a coleta automática não roda |
 
-To learn more about Next.js, take a look at the following resources:
+Depois de criar ou mudar uma variável na Vercel, faça um **Redeploy**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Coleta de editais (Prosas)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Quando roda:** o cron da Vercel (`vercel.json`) chama `/api/coleta` todo dia às 10h UTC, que são 7h em Brasília. O botão "Buscar novos editais" faz a mesma coisa na hora.
+- **O que faz:**
+  - Busca os editais com inscrições abertas.
+  - Faz a triagem por palavras-chave em `src/lib/coletaProsas.ts`, com temas, exclusões e financiadores que aceitam qualquer tema.
+  - Grava só os editais novos, com status "Nova".
+  - Nos editais que já existem, atualiza o prazo.
 
-## Deploy on Vercel
+> **Atenção:** a API do Prosas **não é oficial**. É a mesma que o site deles usa no navegador, com token público e sem login. Ela pode mudar ou ser bloqueada sem aviso. Por isso a coleta roda no máximo uma vez por dia. O caminho mais seguro é pedir ao Prosas um acesso próprio de parceiro, já que o endpoint é `third_party`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Dados
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`scripts/migrar-upstash.mjs` copia `data/*.json` para um Upstash vazio:
+
+```bash
+node --env-file=.env.local scripts/migrar-upstash.mjs
+```
+
+Se o Upstash já tiver dados, o script se recusa a sobrescrever.

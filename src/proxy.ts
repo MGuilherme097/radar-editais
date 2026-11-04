@@ -18,6 +18,6 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // Tudo, menos a tela de login e os arquivos estáticos.
-  matcher: ["/((?!entrar|api/entrar|api/sair|_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
+  // Tudo, menos a tela de login, os arquivos estáticos e /api/coleta (que checa cron ou login por conta própria).
+  matcher: ["/((?!entrar|api/entrar|api/sair|api/coleta|_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
 };
