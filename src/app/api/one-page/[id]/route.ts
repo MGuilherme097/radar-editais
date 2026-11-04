@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { lerOportunidades } from "@/lib/armazenamento";
 import { localizarNavegador } from "@/lib/navegadorPdf";
+import { senhaConfigurada, tokenDaSessao } from "@/lib/sessao";
 
 function rodar(exe: string, args: string[]) {
   return new Promise<void>((ok, falha) => {
@@ -32,6 +33,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     );
   }
 
+  // O navegador headless não leva o cookie de login: o token vai na URL (aceito só em /one-page).
+  const pagina = new URL(`/one-page/${encodeURIComponent(o.id)}`, req.url);
+  if (senhaConfigurada()) pagina.searchParams.set("sessao", tokenDaSessao());
+
   const pasta = await mkdtemp(join(tmpdir(), "radar-onepage-"));
   const pdf = join(pasta, "one-page.pdf");
   try {
@@ -44,7 +49,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       "--print-to-pdf-no-header",
       "--virtual-time-budget=8000", // espera as fontes carregarem
       `--print-to-pdf=${pdf}`,
-      new URL(`/one-page/${encodeURIComponent(o.id)}`, req.url).toString(),
+      pagina.toString(),
     ]);
     const conteudo = await readFile(pdf);
     const nome = nomeArquivo(o.titulo);
