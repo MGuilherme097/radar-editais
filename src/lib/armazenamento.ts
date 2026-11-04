@@ -7,6 +7,7 @@
 //   radar:oportunidades   string  JSON com a lista de oportunidades
 //   radar:acompanhamento  hash    id da oportunidade -> JSON do acompanhamento
 //   radar:descartes       lista   JSON de cada descarte, em ordem de registro
+//   radar:coleta          string  JSON com o resultado da última coleta automática
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Acompanhamento, Descarte, MapaAcompanhamento, Oportunidade } from "@/types/oportunidade";
@@ -17,6 +18,7 @@ const CHAVES = {
   oportunidades: "radar:oportunidades",
   acompanhamento: "radar:acompanhamento",
   descartes: "radar:descartes",
+  coleta: "radar:coleta",
 } as const;
 
 // A integração da Vercel cria KV_REST_API_*; o painel do Upstash mostra UPSTASH_REDIS_REST_*.
@@ -107,6 +109,39 @@ export async function mesclarAcompanhamento(alteracoes: MapaAcompanhamento): Pro
     await gravarJson("acompanhamento.json", novo);
     return novo;
   });
+}
+
+/** Resultado da última coleta automática, para mostrar no app. */
+export type InfoColeta = { em: string; abertos: number; aprovados: number; novos: number; erro?: string };
+
+/**
+ * Acrescenta oportunidades novas e atualiza o prazo das que já existem.
+ * Só a coleta grava a lista (uma vez por dia), então ler-alterar-gravar é suficiente.
+ */
+export async function gravarColeta(
+  novas: Oportunidade[],
+  prazos: Record<string, Pick<Oportunidade, "prazo" | "inscricoesContinuas">>,
+  info: InfoColeta,
+): Promise<void> {
+  const atuais = await lerOportunidades();
+  const lista = [...atuais.map((o) => (prazos[o.id] ? { ...o, ...prazos[o.id] } : o)), ...novas];
+  if (usandoRedis) {
+    await redis(["SET", CHAVES.oportunidades, JSON.stringify(lista)], ["SET", CHAVES.coleta, JSON.stringify(info)]);
+    return;
+  }
+  await gravarJson("oportunidades.json", lista);
+  await gravarJson("coleta.json", info);
+}
+
+export async function registrarFalhaColeta(info: InfoColeta): Promise<void> {
+  if (usandoRedis) await redis(["SET", CHAVES.coleta, JSON.stringify(info)]);
+  else await gravarJson("coleta.json", info);
+}
+
+export async function lerUltimaColeta(): Promise<InfoColeta | null> {
+  if (!usandoRedis) return lerJson<InfoColeta | null>("coleta.json", null);
+  const [json] = await redis(["GET", CHAVES.coleta]);
+  return typeof json === "string" ? (JSON.parse(json) as InfoColeta) : null;
 }
 
 /** Tira do histórico o descarte mais recente da oportunidade (descarte desfeito). */

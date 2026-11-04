@@ -4,7 +4,7 @@ import Link from "next/link";
 import Etiquetas from "@/components/Etiquetas";
 import SeloPrazo, { TextoFaltam } from "@/components/SeloPrazo";
 import StatusControle from "@/components/StatusControle";
-import { textoValor } from "@/lib/radar";
+import { recemColetado, textoValor } from "@/lib/radar";
 import type { Acompanhamento, MapaAcompanhamento, Oportunidade } from "@/types/oportunidade";
 
 type Props = {
@@ -25,6 +25,11 @@ export default function CartaoEdital({ o, acomp, onSalvo }: Props) {
         descartada ? "opacity-60" : ""
       }`}
     >
+      {!acomp && recemColetado(o) && (
+        <span className="absolute top-3 right-3 rounded-full bg-magenta px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+          Novo
+        </span>
+      )}
       <div className="flex items-start gap-3 p-4 pb-3">
         <SeloPrazo o={o} />
         <div className="grid min-w-0 gap-1">

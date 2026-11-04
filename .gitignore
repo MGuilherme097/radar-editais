@@ -43,3 +43,6 @@ next-env.d.ts
 # guia de estrutura: cache de API e arquivos sensíveis
 .cache/
 externos/
+
+# resultado da última coleta quando o app roda sem Upstash
+/data/coleta.json

@@ -19,6 +19,12 @@ export function diasAte(iso: string | null): number | null {
   return Math.round((new Date(a, m - 1, d).getTime() - hoje.getTime()) / 86_400_000);
 }
 
+/** Entrou no radar pela coleta automática há até 3 dias. */
+export function recemColetado(o: { coletadoEm: string }) {
+  const dias = diasAte(o.coletadoEm);
+  return dias != null && dias >= -3;
+}
+
 export const dataBr = (iso: string | null | undefined) =>
   iso ? iso.slice(0, 10).split("-").reverse().join("/") : "";
 
