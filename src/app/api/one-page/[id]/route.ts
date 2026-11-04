@@ -1,0 +1,70 @@
+// Gera o PDF do one page imprimindo /one-page/[id] com o Edge (ou Chrome) da máquina, em modo headless.
+// Não usa pacote extra; o caminho do navegador pode ser forçado com NAVEGADOR_PDF no .env.local.
+import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { lerOportunidades } from "@/lib/armazenamento";
+
+const CANDIDATOS = [
+  process.env.NAVEGADOR_PDF,
+  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+].filter((c): c is string => Boolean(c));
+
+function rodar(exe: string, args: string[]) {
+  return new Promise<void>((ok, falha) => {
+    execFile(exe, args, { timeout: 60_000, windowsHide: true }, (erro) => (erro ? falha(erro) : ok()));
+  });
+}
+
+/** Mesmo padrão dos arquivos feitos à mão: "One page - <título>.pdf". */
+function nomeArquivo(titulo: string) {
+  const limpo = titulo.replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 120);
+  return `One page - ${limpo}.pdf`;
+}
+
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const o = (await lerOportunidades()).find((x) => x.id === decodeURIComponent(id));
+  if (!o) return Response.json({ erro: "Oportunidade não encontrada" }, { status: 404 });
+
+  const navegador = CANDIDATOS.find((c) => existsSync(c));
+  if (!navegador) {
+    return Response.json(
+      { erro: "Edge/Chrome não encontrado. Use 'Imprimir' na prévia ou defina NAVEGADOR_PDF no .env.local." },
+      { status: 500 },
+    );
+  }
+
+  const pasta = await mkdtemp(join(tmpdir(), "radar-onepage-"));
+  const pdf = join(pasta, "one-page.pdf");
+  try {
+    await rodar(navegador, [
+      "--headless=new",
+      "--disable-gpu",
+      "--no-first-run",
+      `--user-data-dir=${join(pasta, "perfil")}`, // perfil isolado: não interfere no Edge aberto
+      "--no-pdf-header-footer",
+      "--print-to-pdf-no-header",
+      "--virtual-time-budget=8000", // espera as fontes carregarem
+      `--print-to-pdf=${pdf}`,
+      new URL(`/one-page/${encodeURIComponent(o.id)}`, req.url).toString(),
+    ]);
+    const conteudo = await readFile(pdf);
+    const nome = nomeArquivo(o.titulo);
+    return new Response(new Uint8Array(conteudo), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="one-page.pdf"; filename*=UTF-8''${encodeURIComponent(nome)}`,
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch {
+    return Response.json({ erro: "Falha ao gerar o PDF. Tente de novo ou use 'Imprimir' na prévia." }, { status: 500 });
+  } finally {
+    await rm(pasta, { recursive: true, force: true }).catch(() => undefined);
+  }
+}

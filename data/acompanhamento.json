@@ -1,0 +1,32 @@
+{
+  "manual-bndes-periferias-em-rede": {
+    "em": "2026-10-28T20:09:37.9923407Z",
+    "nota": "Registrado no radar a pedido da equipe",
+    "por": null,
+    "status": "Em aprovação interna"
+  },
+  "pagina-0ad47d65b704213d-6f71843832e5acb5": {
+    "em": "2026-11-03T12:59:35.484Z",
+    "por": "u_pekqCsuGErImsvfeE1gXZw",
+    "status": "Descartada"
+  },
+  "pagina-fabcc48f4ca0fb20-28ed1db94455c3a5": {
+    "em": "2026-11-03T13:10:25.873Z",
+    "por": "u_pekqCsuGErImsvfeE1gXZw",
+    "status": "Descartada"
+  },
+  "prosas-18810": {
+    "em": "2026-10-30T13:47:00.749Z",
+    "por": "u_pekqCsuGErImsvfeE1gXZw",
+    "status": "Descartada"
+  },
+  "prosas-19450": {
+    "em": "2026-11-03T13:25:20.519Z",
+    "por": "u_pekqCsuGErImsvfeE1gXZw",
+    "status": "Descartada"
+  },
+  "prosas-19534": {
+    "status": "Em análise",
+    "em": "2026-11-04T11:40:50.741Z"
+  }
+}

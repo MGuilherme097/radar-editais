@@ -1,0 +1,54 @@
+/* Folha A4 do one page: tamanho fixo na tela e na impressão/PDF. */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.folha {
+  width: 210mm;
+  height: 297mm;
+  padding: 16mm 18mm 14mm;
+  overflow: hidden;
+  background: #fff;
+  color: #1f2433;
+  font-family: var(--font-plex-serif), Georgia, serif;
+  font-size: 10pt;
+  line-height: 1.5;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.folha .sans {
+  font-family: var(--font-plex-sans), Arial, sans-serif;
+}
+
+/* Títulos de seção com o traço embaixo só até o fim do texto, como nos one pages. */
+.folha .secao {
+  display: inline-block;
+  font-family: var(--font-plex-sans), Arial, sans-serif;
+  font-weight: 700;
+  font-size: 11.5pt;
+  padding-bottom: 1.6mm;
+  border-bottom: 0.6mm solid #1f2433;
+  margin-bottom: 3mm;
+}
+
+.folha .subsecao {
+  font-family: var(--font-plex-sans), Arial, sans-serif;
+  font-weight: 700;
+  font-size: 10.5pt;
+  padding-bottom: 1.6mm;
+  border-bottom: 0.5mm solid #1f2433;
+  margin-bottom: 3mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+  .folha {
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+}

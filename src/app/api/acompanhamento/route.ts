@@ -1,0 +1,62 @@
+import { NextResponse } from "next/server";
+import {
+  lerAcompanhamento,
+  lerOportunidades,
+  mesclarAcompanhamento,
+  registrarDescarte,
+} from "@/lib/armazenamento";
+import { STATUS, type MapaAcompanhamento, type Status } from "@/types/oportunidade";
+
+export async function GET() {
+  return NextResponse.json(await lerAcompanhamento());
+}
+
+type CorpoPatch = { id: string; status: Status; motivoDescarte?: string };
+
+/** Muda o status de uma oportunidade. Descartar exige motivo, que também vai para o histórico. */
+export async function PATCH(req: Request) {
+  let corpo: CorpoPatch;
+  try {
+    corpo = await req.json();
+  } catch {
+    return NextResponse.json({ erro: "JSON inválido" }, { status: 400 });
+  }
+  const { id, status } = corpo;
+  const motivo = corpo.motivoDescarte?.trim().slice(0, 800);
+  if (!id || !STATUS.includes(status)) {
+    return NextResponse.json({ erro: "id ou status inválido" }, { status: 400 });
+  }
+  if (status === "Descartada" && !motivo) {
+    return NextResponse.json({ erro: "Informe o motivo do descarte" }, { status: 400 });
+  }
+
+  const o = (await lerOportunidades()).find((x) => x.id === id);
+  if (!o) return NextResponse.json({ erro: "Oportunidade não encontrada" }, { status: 404 });
+
+  const em = new Date().toISOString();
+  if (status === "Descartada" && motivo) {
+    // Base que o Claude lê para ajustar o perfil e os critérios do radar.
+    await registrarDescarte({
+      oportunidadeId: id,
+      motivo,
+      em,
+      titulo: o.titulo,
+      financiador: o.financiador,
+      fonte: o.fonte,
+      link: o.link,
+      tema: o.tema,
+      local: o.local,
+      prazo: o.prazo,
+      valorPorProjeto: o.valorPorProjeto,
+      valorTotal: o.valorTotal,
+      nota: o.nota,
+      motivoTriagem: o.motivoTriagem,
+      objetivo: o.objetivo,
+    });
+  }
+
+  const linha: MapaAcompanhamento = {
+    [id]: status === "Descartada" ? { status, em, motivoDescarte: motivo } : { status, em },
+  };
+  return NextResponse.json(await mesclarAcompanhamento(linha));
+}

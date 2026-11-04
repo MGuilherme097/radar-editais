@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* Identidade Instituto Ânima: azul-marinho + magenta (mesma paleta do artifact do radar). */
+@theme inline {
+  --color-azul: #0b3d91;
+  --color-azul-escuro: #082c6a;
+  --color-azul-claro: #e8eefb;
+  --color-magenta: #b1197c;
+  --color-magenta-claro: #fbe8f4;
+  --color-fundo: #f4f5f9;
+  --color-superficie: #ffffff;
+  --color-tinta: #14193a;
+  --color-suave: #5a6180;
+  --color-linha: #dfe2ee;
+  --color-chip: #eef1fa;
+
+  /* Prazo */
+  --color-urgente: #c4271b;
+  --color-urgente-claro: #fdecea;
+  --color-breve: #9a5b00;
+  --color-breve-claro: #fff4dc;
+  --color-ok: #1d7a46;
+  --color-ok-claro: #e5f5ec;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-fundo);
+  color: var(--color-tinta);
+}
+
+/* Fundo pontilhado do topo da página do edital (como no Prosas). */
+.pontilhado {
+  background-color: #eceef4;
+  background-image: radial-gradient(#c3c8d8 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-magenta);
+  outline-offset: 2px;
+}
+
+dialog::backdrop {
+  background: rgb(8 12 40 / 0.55);
+}
