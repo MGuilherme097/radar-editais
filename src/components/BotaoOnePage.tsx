@@ -3,8 +3,21 @@
 import Link from "next/link";
 import { useState } from "react";
 
-/** Baixa o one page em PDF (gerado no servidor) e oferece a prévia em A4. */
-export default function BotaoOnePage({ id }: { id: string }) {
+const estiloBotao =
+  "inline-flex items-center gap-2 rounded-lg bg-magenta px-4 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60";
+
+const IconeBaixar = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="size-4" aria-hidden>
+    <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+/**
+ * Gera o one page em PDF.
+ * - pdfNoServidor (máquina local com Edge): baixa o arquivo pronto, gerado em /api/one-page.
+ * - sem navegador no servidor (Vercel): abre a prévia A4 e chama "Imprimir → Salvar como PDF".
+ */
+export default function BotaoOnePage({ id, pdfNoServidor }: { id: string; pdfNoServidor: boolean }) {
   const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -35,17 +48,17 @@ export default function BotaoOnePage({ id }: { id: string }) {
         <Link href={`/one-page/${id}`} className="px-2 py-2 text-sm font-semibold text-azul underline-offset-2 hover:underline">
           Ver prévia
         </Link>
-        <button
-          type="button"
-          onClick={baixar}
-          disabled={gerando}
-          className="inline-flex items-center gap-2 rounded-lg bg-magenta px-4 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="size-4" aria-hidden>
-            <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {gerando ? "Gerando PDF…" : "Gerar one page (PDF)"}
-        </button>
+        {pdfNoServidor ? (
+          <button type="button" onClick={baixar} disabled={gerando} className={estiloBotao}>
+            <IconeBaixar />
+            {gerando ? "Gerando PDF…" : "Gerar one page (PDF)"}
+          </button>
+        ) : (
+          <Link href={`/one-page/${id}?imprimir=1`} className={estiloBotao}>
+            <IconeBaixar />
+            Gerar one page (PDF)
+          </Link>
+        )}
       </div>
       {erro && <p className="text-xs text-urgente">{erro}</p>}
     </div>

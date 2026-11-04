@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import BotaoImprimir from "@/components/BotaoImprimir";
+import { localizarNavegador } from "@/lib/navegadorPdf";
 import { connection } from "next/server";
 import type { CSSProperties, ReactNode } from "react";
 import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
@@ -39,12 +42,26 @@ function Vazio({ children }: { children: ReactNode }) {
   return <p className="m-0 italic text-[#6b7186]">{children}</p>;
 }
 
-export default async function OnePage({ params }: { params: Promise<{ id: string }> }) {
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ imprimir?: string }>;
+};
+
+/** O título da aba vira o nome sugerido do arquivo em "Salvar como PDF". */
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const o = (await lerOportunidades()).find((x) => x.id === decodeURIComponent(id));
+  return { title: o ? `One page - ${o.titulo}` : "One page" };
+}
+
+export default async function OnePage({ params, searchParams }: Props) {
   await connection();
   const { id } = await params;
+  const { imprimir } = await searchParams;
   const [oportunidades, acomp] = await Promise.all([lerOportunidades(), lerAcompanhamento()]);
   const o = oportunidades.find((x) => x.id === decodeURIComponent(id));
   if (!o) notFound();
+  const pdfNoServidor = localizarNavegador() !== null;
 
   const cor = corDoTema(o.tema);
   const prazo = prazoPartes(o);
@@ -60,9 +77,14 @@ export default async function OnePage({ params }: { params: Promise<{ id: string
         <Link href={`/editais/${o.id}`} className="font-semibold text-azul">
           « Voltar ao edital
         </Link>
-        <a href={`/api/one-page/${o.id}`} className="rounded-lg bg-azul px-4 py-2 font-semibold text-white">
-          Baixar PDF
-        </a>
+        <div className="flex gap-2">
+          <BotaoImprimir automatico={imprimir === "1"} />
+          {pdfNoServidor && (
+            <a href={`/api/one-page/${o.id}`} className="rounded-lg bg-azul px-4 py-2 font-semibold text-white">
+              Baixar PDF
+            </a>
+          )}
+        </div>
       </div>
 
       <article style={estilo} className="folha mx-auto mb-8 flex flex-col shadow-xl print:mb-0">
