@@ -47,6 +47,8 @@ export type Acompanhamento = {
   por?: string | null;
   nota?: string;
   motivoDescarte?: string;
+  /** Status de antes do descarte, para o "Desfazer descarte" devolver. */
+  statusAnterior?: Status;
 };
 
 /** Chave = id da oportunidade. */

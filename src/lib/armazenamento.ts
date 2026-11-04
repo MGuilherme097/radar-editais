@@ -109,6 +109,24 @@ export async function mesclarAcompanhamento(alteracoes: MapaAcompanhamento): Pro
   });
 }
 
+/** Tira do histórico o descarte mais recente da oportunidade (descarte desfeito). */
+export async function removerDescarte(oportunidadeId: string): Promise<void> {
+  if (usandoRedis) {
+    const [lista] = await redis(["LRANGE", CHAVES.descartes, 0, -1]);
+    const brutos = Array.isArray(lista) ? (lista as string[]) : [];
+    const alvo = brutos.findLast((x) => (JSON.parse(x) as Descarte).oportunidadeId === oportunidadeId);
+    if (alvo) await redis(["LREM", CHAVES.descartes, -1, alvo]);
+    return;
+  }
+  await emFila(async () => {
+    const lista = await lerJson<Descarte[]>("descartes.json", []);
+    const i = lista.findLastIndex((d) => d.oportunidadeId === oportunidadeId);
+    if (i < 0) return;
+    lista.splice(i, 1);
+    await gravarJson("descartes.json", lista);
+  });
+}
+
 export async function registrarDescarte(d: Descarte): Promise<void> {
   if (usandoRedis) {
     await redis(["RPUSH", CHAVES.descartes, JSON.stringify(d)]);

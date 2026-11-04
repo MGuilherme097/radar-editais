@@ -6,6 +6,7 @@ import {
   lerOportunidades,
   mesclarAcompanhamento,
   registrarDescarte,
+  removerDescarte,
 } from "@/lib/armazenamento";
 import { STATUS, type MapaAcompanhamento, type Status } from "@/types/oportunidade";
 
@@ -44,7 +45,14 @@ export async function PATCH(req: Request) {
   if (!o) return NextResponse.json({ erro: "Oportunidade não encontrada" }, { status: 404 });
 
   const em = new Date().toISOString();
+  const atual = (await lerAcompanhamento())[id];
+  const estavaDescartada = atual?.status === "Descartada";
+
+  // Sair de "Descartada" desfaz o descarte: ele deixa de valer como motivo no histórico.
+  if (estavaDescartada && status !== "Descartada") await removerDescarte(id);
+
   if (status === "Descartada" && motivo) {
+    if (estavaDescartada) await removerDescarte(id); // novo motivo substitui o anterior
     // Base que o Claude lê para ajustar o perfil e os critérios do radar.
     await registrarDescarte({
       oportunidadeId: id,
@@ -66,7 +74,15 @@ export async function PATCH(req: Request) {
   }
 
   const linha: MapaAcompanhamento = {
-    [id]: status === "Descartada" ? { status, em, motivoDescarte: motivo } : { status, em },
+    [id]:
+      status === "Descartada"
+        ? {
+            status,
+            em,
+            motivoDescarte: motivo,
+            statusAnterior: estavaDescartada ? atual.statusAnterior : (atual?.status ?? "Nova"),
+          }
+        : { status, em },
   };
   return NextResponse.json(await mesclarAcompanhamento(linha));
 }
