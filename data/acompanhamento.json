@@ -28,5 +28,10 @@
   "prosas-19534": {
     "status": "Em análise",
     "em": "2026-11-04T11:40:50.741Z"
+  },
+  "pagina-719e95109c40696f-9574d9c3b4a0d419": {
+    "status": "Descartada",
+    "em": "2026-11-04T13:19:46.992Z",
+    "motivoDescarte": "Esse endereço é um portal dedicado a publicação de editais pelo Itaú Social, seria mais adequado captar os editais diretamente. Também não há editais abertos no portal"
   }
 }
