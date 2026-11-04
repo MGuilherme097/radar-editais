@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BotaoDesfazerDescarte from "@/components/BotaoDesfazerDescarte";
 import StatusControle from "@/components/StatusControle";
 import { dataBr } from "@/lib/radar";
 import type { Acompanhamento } from "@/types/oportunidade";
@@ -17,11 +18,16 @@ export default function StatusDetalhe({ id, titulo, inicial }: { id: string; tit
         onSalvo={(mapa) => setAcomp(mapa[id])}
       />
       {acomp?.em && <p className="text-xs text-suave">Atualizado em {dataBr(acomp.em)}</p>}
-      {acomp?.status === "Descartada" && acomp.motivoDescarte && (
-        <p className="border-l-2 border-linha pl-2 text-sm text-suave">
-          <b className="text-tinta">Motivo do descarte: </b>
-          {acomp.motivoDescarte}
-        </p>
+      {acomp?.status === "Descartada" && (
+        <>
+          {acomp.motivoDescarte && (
+            <p className="border-l-2 border-linha pl-2 text-sm text-suave">
+              <b className="text-tinta">Motivo do descarte: </b>
+              {acomp.motivoDescarte}
+            </p>
+          )}
+          <BotaoDesfazerDescarte id={id} statusAnterior={acomp.statusAnterior} onDesfeito={(mapa) => setAcomp(mapa[id])} />
+        </>
       )}
     </div>
   );

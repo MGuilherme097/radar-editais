@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import BotaoDesfazerDescarte from "@/components/BotaoDesfazerDescarte";
 import FaixaTitulo from "@/components/FaixaTitulo";
-import { lerDescartes } from "@/lib/armazenamento";
+import { lerAcompanhamento, lerDescartes } from "@/lib/armazenamento";
 import { dataBr } from "@/lib/radar";
 
 /** Histórico dos descartes com motivo: base para ajustar o perfil e os critérios do radar. */
 export default async function PaginaDescartes() {
   await connection();
-  const descartes = (await lerDescartes()).toSorted((a, b) => b.em.localeCompare(a.em));
+  const [lista, acompanhamento] = await Promise.all([lerDescartes(), lerAcompanhamento()]);
+  const descartes = lista.toSorted((a, b) => b.em.localeCompare(a.em));
 
   return (
     <>
@@ -29,6 +31,14 @@ export default async function PaginaDescartes() {
                 </h2>
                 <p className="text-xs text-suave">{d.financiador}</p>
                 <p className="border-l-2 border-magenta pl-3 text-sm">{d.motivo}</p>
+                {acompanhamento[d.oportunidadeId]?.status === "Descartada" && (
+                  <div className="mt-1">
+                    <BotaoDesfazerDescarte
+                      id={d.oportunidadeId}
+                      statusAnterior={acompanhamento[d.oportunidadeId].statusAnterior}
+                    />
+                  </div>
+                )}
               </article>
             ))}
           </div>
